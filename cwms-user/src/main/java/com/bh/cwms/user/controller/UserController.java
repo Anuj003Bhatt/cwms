@@ -9,6 +9,7 @@ import com.bh.cwms.user.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,6 +51,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Found user by ID"),
             @ApiResponse(responseCode = "404", description = "No user found for given ID")
     })
+    @PreAuthorize("hasAuthority('ADMIN1')")
     public UserDto findUserById(@PathVariable("id") UUID id){
         return userService.getUserById(id);
     }
@@ -79,6 +82,7 @@ public class UserController {
             @ApiResponse(responseCode = "201", description = "User added successfully")
     })
     @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirements()
     public UserDto createUser(@RequestBody AddUser user){
         return userService.addUser(user);
     }
@@ -115,6 +119,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Authentication successful"),
             @ApiResponse(responseCode = "401", description = "Authentication failed")
     })
+    @SecurityRequirements()
     public Map<String, String> authenticate(
             @RequestBody @Valid UserAuthenticationRequest request
     ) {
