@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  user_database:
+    container_name: user_database
+    image: postgres
+    restart: always
+    volumes:
+      - pgData:/var/lib/postgresql/user_data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: "exit 0"
+    networks:
+      - appNet
+  wallet_database:
+    container_name: wallet_database
+    image: postgres
+    restart: always
+    volumes:
+      - pgData:/var/lib/postgresql/wallet_data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: "exit 0"
+    networks:
+      - appNet
+  pg_admin:
+    container_name: pgadmin4-server
+    image: dpage/pgadmin4
+    restart: always
+    depends_on:
+      user_database:
+        condition: service_healthy
+      wallet_database:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    networks:
+      - appNet
+    volumes:
+      - pgData:/var/lib/postgresql
+#  cwms-user:
+#    container_name: cwms-user
+#    build: ./
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - pg_container
+
+networks:
+  appNet:
+volumes:
+  pgData:
