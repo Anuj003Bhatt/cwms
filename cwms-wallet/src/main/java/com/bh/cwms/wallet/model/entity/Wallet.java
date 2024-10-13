@@ -40,10 +40,14 @@ public class Wallet implements DtoBridge<WalletDto> {
     private List<WalletItem> walletItems;
 
     @Column(name = "user_id")
-    private String userId;
+    private UUID userId;
 
     @Override
     public WalletDto toDto() {
-        return WalletDto.builder().build();
+        return WalletDto
+                .builder()
+                .id(id)
+                .walletItems(walletItems.stream().map(WalletItem::toDto).toList())
+                .build();
     }
 }

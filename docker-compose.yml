@@ -52,11 +52,18 @@ services:
       - pgData:/var/lib/postgresql
 #  cwms-user:
 #    container_name: cwms-user
-#    build: ./
+#    build: ./cwms-user/
 #    ports:
-#      - "8080:8080"
+#      - "8001:8001"
 #    depends_on:
-#      - pg_container
+#      - user_database
+#  cwms-wallet:
+#    container_name: cwms-wallet
+#    build: ./cwms-wallet/
+#    ports:
+#      - "8002:8002"
+#    depends_on:
+#      - wallet_database
 
 networks:
   appNet:

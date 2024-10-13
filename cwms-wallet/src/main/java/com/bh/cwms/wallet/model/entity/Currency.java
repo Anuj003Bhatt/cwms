@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +24,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "currencies")
+@Table(name = "currencies", uniqueConstraints = {
+        @UniqueConstraint(name = "currency_name_uniqye",  columnNames = {"name"})
+})
 public class Currency implements DtoBridge<CurrencyDto> {
     @Id
     @Column(name = "id")
