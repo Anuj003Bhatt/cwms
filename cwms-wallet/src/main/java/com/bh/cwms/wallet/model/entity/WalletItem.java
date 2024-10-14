@@ -1,6 +1,7 @@
 package com.bh.cwms.wallet.model.entity;
 
 import com.bh.cwms.common.bridge.DtoBridge;
+import com.bh.cwms.wallet.model.constants.Currency;
 import com.bh.cwms.wallet.model.dto.wallet.WalletItemDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,18 +39,17 @@ public class WalletItem implements DtoBridge<WalletItemDto> {
     @JoinColumn(name = "wallet_id")
     private Wallet wallet;
 
-    @ManyToOne
-    @JoinColumn(name = "currency_id", referencedColumnName = "id")
+    @Column(name = "currency", nullable = false)
     private Currency currency;
 
-    @Column(name = "balance")
+    @Column(name = "balance", nullable = false)
     private BigDecimal balance = BigDecimal.ZERO;
 
     @Override
     public WalletItemDto toDto() {
         return WalletItemDto.builder()
                 .id(id)
-                .currency(currency.toDto())
+                .currency(currency)
                 .balance(balance)
                 .build();
     }

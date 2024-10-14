@@ -1,7 +1,7 @@
 package com.bh.cwms.wallet.model.dto.wallet;
 
+import com.bh.cwms.wallet.model.constants.Currency;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class AddWallet {
-
-    @NotBlank(message = "Wallet needs to associated with at-least one currency.")
-    private String currency;
+    private Currency currency;
+    @NotBlank(message = "Pin cannot be blank.")
+    private String pin;
 }

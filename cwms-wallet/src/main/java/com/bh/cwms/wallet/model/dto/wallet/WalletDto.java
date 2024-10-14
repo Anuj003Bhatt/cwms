@@ -19,4 +19,5 @@ public class WalletDto {
     private UUID id;
     private List<WalletItemDto> walletItems;
     private BigDecimal balanceInUsd;
+    private String publicKey;
 }

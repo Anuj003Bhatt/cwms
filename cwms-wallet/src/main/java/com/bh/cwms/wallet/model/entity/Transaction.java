@@ -1,5 +1,6 @@
 package com.bh.cwms.wallet.model.entity;
 
+import com.bh.cwms.wallet.model.constants.Currency;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,7 +40,7 @@ public class Transaction {
     @JoinColumn(name = "target_wallet_item_id")
     private WalletItem targetWalletItem;
 
-    @ManyToOne
-    @JoinColumn(name = "currency_id", referencedColumnName = "id")
+
+    @Column(name = "currency")
     private Currency currency;
 }

@@ -1,12 +1,14 @@
 package com.bh.cwms.wallet.controller;
 
 import com.bh.cwms.common.model.rest.response.ListResponse;
+import com.bh.cwms.common.model.security.UserContext;
 import com.bh.cwms.wallet.model.dto.wallet.AddWallet;
 import com.bh.cwms.wallet.model.dto.wallet.WalletDto;
 import com.bh.cwms.wallet.service.wallet.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +33,7 @@ import java.util.UUID;
 @RequestMapping("/wallets")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Wallets")
 public class WalletController {
     private final WalletService walletService;
 
@@ -40,8 +46,12 @@ public class WalletController {
             @ApiResponse(responseCode = "200", description = "Found wallet by ID"),
             @ApiResponse(responseCode = "404", description = "No wallet found for given ID")
     })
-    public WalletDto findUserById(@PathVariable("id") UUID id){
-        return walletService.getWalletById(id);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public WalletDto findWalletById(
+            @AuthenticationPrincipal UserContext context,
+            @PathVariable("id") UUID id
+    ){
+        return walletService.getWalletById(UUID.fromString(context.getUserId()),id);
     }
 
     @GetMapping
@@ -53,7 +63,8 @@ public class WalletController {
             @ApiResponse(responseCode = "200", description = "Found wallets for user"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ListResponse<WalletDto> getUsersPage(
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ListResponse<WalletDto> getWalletPage(
             @PageableDefault(size = 20)
             @SortDefault.SortDefaults({
                     @SortDefault(sort = "id", direction = Sort.Direction.ASC)
@@ -70,27 +81,27 @@ public class WalletController {
             @ApiResponse(responseCode = "201", description = "Wallet created successfully")
     })
     @ResponseStatus(HttpStatus.CREATED)
-    public WalletDto createUser(@RequestBody AddWallet addWallet){
-        return walletService.createWallet(addWallet, UUID.fromString("7826182f-e0b1-4edf-98e0-87cd871f1999"));
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public WalletDto createWallet(
+            @RequestBody AddWallet addWallet,
+            @AuthenticationPrincipal UserContext context
+    ){
+        return walletService.createWallet(addWallet, UUID.fromString(context.getUserId()));
     }
 
-    @PostMapping("/{id}")
+    @DeleteMapping("{id}")
     @Operation(
-            summary = "Add wallet item for user",
-            description = "Add a wallet to the user's wallet"
+            summary = "Delete wallet",
+            description = "Delete a wallet for the user"
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Wallet item added successfully")
+            @ApiResponse(responseCode = "201", description = "Wallet created successfully")
     })
-    @ResponseStatus(HttpStatus.CREATED)
-    public WalletDto addWalletItem(
-            @PathVariable("id") UUID walletId,
-            @RequestBody AddWallet addWallet
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Boolean deleteWallet(
+            @PathVariable("id") UUID walletId
     ){
-        return walletService.addWalletItem(
-                walletId,
-                addWallet,
-                UUID.fromString("7826182f-e0b1-4edf-98e0-87cd871f1999")
-        );
+        walletService.deleteWallet(walletId);
+        return true;
     }
 }

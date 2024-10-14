@@ -51,7 +51,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Found user by ID"),
             @ApiResponse(responseCode = "404", description = "No user found for given ID")
     })
-    @PreAuthorize("hasAuthority('ADMIN1')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public UserDto findUserById(@PathVariable("id") UUID id){
         return userService.getUserById(id);
     }
@@ -65,6 +65,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Found user by ID"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ListResponse<UserDto> getUsersPage(
             @PageableDefault(size = 20)
             @SortDefault.SortDefaults({
@@ -95,6 +96,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "User disabled successfully"),
             @ApiResponse(responseCode = "404", description = "No user found for given ID")
     })
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Map<String, String> disableUser(@PathVariable("id") UUID id){
         userService.disableUser(id);
         return Map.of("message",String.format("User %s has been disabled", id));
@@ -108,6 +110,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "User enabled successfully"),
             @ApiResponse(responseCode = "404", description = "No disabled user found for given ID")
     })
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Map<String, String> enableUser(@PathVariable("id")UUID id){
         userService.enableUser(id);
         return Map.of("message",String.format("User %s has been enabled", id));
@@ -126,7 +129,12 @@ public class UserController {
         return userService.authenticate(request.getUsername(), request.getPassword());
     }
 
+    @Operation(
+            summary = "Assign Role",
+            description = "Assign a role to a user"
+    )
     @PutMapping("/{userId}/role/{roleId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Map<String, String> assignUserToRole(
             @PathVariable("userId") UUID userId,
             @PathVariable("roleId") UUID roleId

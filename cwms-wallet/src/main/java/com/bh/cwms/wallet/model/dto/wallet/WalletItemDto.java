@@ -1,6 +1,6 @@
 package com.bh.cwms.wallet.model.dto.wallet;
 
-import com.bh.cwms.wallet.model.dto.currency.CurrencyDto;
+import com.bh.cwms.wallet.model.constants.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +17,6 @@ import java.util.UUID;
 @Builder
 public class WalletItemDto {
     private UUID id;
-    private CurrencyDto currency;
+    private Currency currency;
     private BigDecimal balance;
 }

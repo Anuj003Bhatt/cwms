@@ -2,6 +2,7 @@ package com.bh.cwms.wallet.model.entity;
 
 import com.bh.cwms.common.bridge.DtoBridge;
 import com.bh.cwms.wallet.model.dto.wallet.WalletDto;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,11 +37,14 @@ public class Wallet implements DtoBridge<WalletDto> {
     @UuidGenerator
     private UUID id;
 
-    @OneToMany(mappedBy = "wallet")
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL)
     private List<WalletItem> walletItems;
 
     @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "private_key", length = 3000)
+    private String privateKey;
 
     @Override
     public WalletDto toDto() {

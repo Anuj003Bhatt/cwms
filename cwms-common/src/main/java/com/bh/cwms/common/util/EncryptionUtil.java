@@ -10,6 +10,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -45,10 +47,10 @@ public abstract class EncryptionUtil {
      *
      * @return SecretKeySpec Object
      */
-    private static SecretKeySpec prepareSecreteKey() {
+    private static SecretKeySpec prepareSecreteKey(String secret) {
         MessageDigest sha;
         try {
-            byte[] key = SECRET.getBytes(StandardCharsets.UTF_8);
+            byte[] key = secret.getBytes(StandardCharsets.UTF_8);
             sha = MessageDigest.getInstance("SHA-1");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 16);
@@ -59,15 +61,19 @@ public abstract class EncryptionUtil {
 
     }
 
+    public static String encrypt(String originalString) {
+        return encrypt(originalString, SECRET);
+    }
+
     /**
      * Function to encrypt a string using symmetric encryption and the secret constant from this file.
      *
      * @param originalString String to be encrypted
      * @return encrypted string
      */
-    public static String encrypt(String originalString) {
+    public static String encrypt(String originalString, String secret) {
         try {
-            SecretKeySpec secretKey = prepareSecreteKey();
+            SecretKeySpec secretKey = prepareSecreteKey(secret);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             return Base64.getEncoder().encodeToString(cipher.doFinal(originalString.getBytes(StandardCharsets.UTF_8)));
@@ -77,15 +83,18 @@ public abstract class EncryptionUtil {
         }
     }
 
+    public static String decrypt(String encryptedString) {
+        return decrypt(encryptedString, SECRET);
+    }
     /**
      * Function to decrypt a string using symmetric encryption and the secret constant from this file.
      *
      * @param encryptedString String to be decrypted
      * @return original string
      */
-    public static String decrypt(String encryptedString) {
+    public static String decrypt(String encryptedString, String secret) {
         try {
-            SecretKeySpec secretKey = prepareSecreteKey();
+            SecretKeySpec secretKey = prepareSecreteKey(secret);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedString)));
@@ -178,5 +187,38 @@ public abstract class EncryptionUtil {
 
         String encoded = Base64.getEncoder().encodeToString(hash(input, fromDb.getSalt()));
         return fromDb.getValue().equals(encoded);
+    }
+
+    /**
+     * Function to generate a pair of private and public key
+     *
+     * @return KeyPair
+     */
+    public static KeyPair generateKeyPair() {
+        try {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(2048);
+            return kpg.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Unable to generate key pair");
+        }
+    }
+
+    public static String applySha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            //Applies sha256 to our input,
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder(); // This will contain hash as hexidecimal
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        }
+        catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

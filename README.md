@@ -2,12 +2,29 @@
 This repository contains the code base for the Crypto wallet management system which
 allows users to create account and then maintain the wallets for themselves.
 
-# Methodology
-Each user needs to create an account and then authenticate themselves in order to be able to use the application. 
-The application exposes to endpoints for the same:
-- [POST] `/users`: To create account
-- `/users/authenticate`
+# Approach & Methodology
+ 
+
+The approach followed in this application is as follows:
+- Each user needs to create an account and then authenticate themselves in order to be able to use the application.
+    - The application exposes to endpoints for the same:
+        - [POST] `/users`: To create account
+        - `/users/authenticate`
     - This endpoint validates the username and password of user and returns a JWT containing the role as well.
+- Each user has one single dedicated wallet and each wallet consists of wallet items for specific currencies.
+- The transaction management system performs transactions on the wallet items, identifying the source and target wallet items.
+- Apart from that the 
+
+# Available Features
+- Wallet Management:
+  - Each user has one single dedicated `wallet` associated with their account.
+  - Each user's `wallet` has `wallet items` inside it that correspond to specific currencies [like bitcoin, ethereum etc.].
+- User Management:
+  - User can create account by sign up / `create user` endpoint.
+    - **Note:** The user's wallet is not created as of now at account creation time. A separate api is exposed to do that that initiates the wallet creation with one currency.
+- User Role Management:
+  - Admins can add roles to existing users
+# Pending Features
 
 # Code Architecture
 The repository tries to create a microservice based architecture with 2 services

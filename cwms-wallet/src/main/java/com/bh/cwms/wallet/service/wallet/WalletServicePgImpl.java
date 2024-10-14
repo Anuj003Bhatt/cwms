@@ -3,13 +3,13 @@ package com.bh.cwms.wallet.service.wallet;
 import com.bh.cwms.common.exception.BadRequestException;
 import com.bh.cwms.common.model.rest.response.ListResponse;
 import com.bh.cwms.common.util.BridgeUtil;
+import com.bh.cwms.common.util.EncryptionUtil;
+import com.bh.cwms.wallet.model.constants.Currency;
 import com.bh.cwms.wallet.model.dto.wallet.AddWallet;
 import com.bh.cwms.wallet.model.dto.wallet.WalletDto;
 import com.bh.cwms.wallet.model.dto.wallet.WalletItemDto;
-import com.bh.cwms.wallet.model.entity.Currency;
 import com.bh.cwms.wallet.model.entity.Wallet;
 import com.bh.cwms.wallet.model.entity.WalletItem;
-import com.bh.cwms.wallet.repository.CurrencyRepository;
 import com.bh.cwms.wallet.repository.WalletItemRepository;
 import com.bh.cwms.wallet.repository.WalletRepository;
 import com.bh.cwms.wallet.service.price.PriceService;
@@ -21,7 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +37,6 @@ public class WalletServicePgImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final WalletItemRepository walletItemRepository;
 
-    private final CurrencyRepository currencyRepository;
-
     @Override
     @Transactional
     public WalletDto createWallet(AddWallet newWallet, UUID userId) {
@@ -44,13 +44,12 @@ public class WalletServicePgImpl implements WalletService {
         if (wallet != null) {
             throw new BadRequestException("Wallet for user '{}' already exists. Try creating a wallet item instead", userId);
         }
-        Currency currency = currencyRepository.findByName(newWallet.getCurrency()).orElseThrow(
-                () -> new BadRequestException("Invalid currency '{}'", newWallet.getCurrency())
-        );
 
-
+        KeyPair pair = EncryptionUtil.generateKeyPair();
+        String privateKey = Base64.getMimeEncoder().encodeToString( pair.getPrivate().getEncoded());
         wallet = Wallet
                 .builder()
+                .privateKey(EncryptionUtil.encrypt(privateKey, newWallet.getPin()))
                 .userId(userId)
                 .build();
 
@@ -58,12 +57,15 @@ public class WalletServicePgImpl implements WalletService {
         WalletItem item = walletItemRepository.save(WalletItem
                 .builder()
                 .wallet(wallet)
-                .currency(currency)
+                .balance(BigDecimal.ZERO)
+                .currency(newWallet.getCurrency())
                 .build());
 
         walletItems.add(item);
         wallet.setWalletItems(walletItems);
-        return walletRepository.save(wallet).toDto();
+        WalletDto walletDto = walletRepository.save(wallet).toDto();
+        walletDto.setPublicKey(Base64.getMimeEncoder().encodeToString( pair.getPublic().getEncoded()));
+        return walletDto;
     }
 
     @Override
@@ -72,15 +74,12 @@ public class WalletServicePgImpl implements WalletService {
         Wallet wallet = walletRepository.findById(walletId).orElseThrow(
                 () -> new BadRequestException("Wallet for user '{}' already exists.", userId)
         );
-        Currency currency = currencyRepository.findByName(newWallet.getCurrency()).orElseThrow(
-                () -> new BadRequestException("Invalid currency '{}'", newWallet.getCurrency())
-        );
-
         wallet.getWalletItems().add(
                 WalletItem
                         .builder()
                         .wallet(wallet)
-                        .currency(currency)
+                        .currency(newWallet.getCurrency())
+                        .balance(BigDecimal.ZERO)
                         .build()
         );
         return walletRepository.save(wallet).toDto();
@@ -88,16 +87,15 @@ public class WalletServicePgImpl implements WalletService {
 
     private BigDecimal getWalletBalance(WalletDto walletDto) {
         BigDecimal walletBalance = BigDecimal.ZERO;
-        Map<String, BigDecimal> currencies = new HashMap<>();
+        Map<Currency, BigDecimal> currencies = new HashMap<>();
 
         for (WalletItemDto item: walletDto.getWalletItems()) {
-            String currencyName = item.getCurrency().getName();
-            if (!currencies.containsKey(currencyName)) {
-               currencies.put(currencyName, priceService.getPriceUsd(currencyName));
+            if (!currencies.containsKey(item.getCurrency())) {
+               currencies.put(item.getCurrency(), priceService.getPriceUsd(item.getCurrency()));
             }
-            if (currencies.get(currencyName) != null && item.getBalance() != null) {
+            if (currencies.get(item.getCurrency()) != null && item.getBalance() != null) {
                 walletBalance = walletBalance.add(
-                        currencies.get(currencyName).multiply(item.getBalance())
+                        currencies.get(item.getCurrency()).multiply(item.getBalance())
                 );
             }
 
@@ -106,10 +104,22 @@ public class WalletServicePgImpl implements WalletService {
     }
 
     @Override
+    public WalletDto getWalletById(UUID userId,UUID id) {
+        WalletDto walletDto = walletRepository.findByUserIdAndId(userId, id).orElseThrow(
+                () -> new BadRequestException("No wallet found for ID '{}' for user '{}'", id, userId)
+        ).toDto();
+
+        BigDecimal balance = getWalletBalance(walletDto);
+        walletDto.setBalanceInUsd(balance);
+        return walletDto;
+    }
+
+    @Override
     public WalletDto getWalletById(UUID id) {
         WalletDto walletDto = walletRepository.findById(id).orElseThrow(
                 () -> new BadRequestException("No wallet found for ID '{}'", id)
         ).toDto();
+
         BigDecimal balance = getWalletBalance(walletDto);
         walletDto.setBalanceInUsd(balance);
         return walletDto;
