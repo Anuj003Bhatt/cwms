@@ -8,6 +8,7 @@ import com.bh.cwms.user.model.type.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -69,7 +70,7 @@ public class User implements DtoBridge<UserDto> {
     @Column(name = "password", nullable = false)
     private SaltEncrypt password;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "USER_ROLES",
             joinColumns = @JoinColumn(name = "user_id"),

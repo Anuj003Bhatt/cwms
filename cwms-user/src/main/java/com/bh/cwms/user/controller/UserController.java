@@ -51,7 +51,6 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Found user by ID"),
             @ApiResponse(responseCode = "404", description = "No user found for given ID")
     })
-    @PreAuthorize("hasAuthority('ADMIN')")
     public UserDto findUserById(@PathVariable("id") UUID id){
         return userService.getUserById(id);
     }
@@ -74,7 +73,7 @@ public class UserController {
         return userService.getPaginated(pageable);
     }
 
-    @PostMapping
+    @PostMapping("signup")
     @Operation(
             summary = "Create new user",
             description = "Create a new user for the platform"

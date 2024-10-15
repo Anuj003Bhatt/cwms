@@ -3,6 +3,7 @@ package com.bh.cwms.wallet.model.entity;
 import com.bh.cwms.common.bridge.DtoBridge;
 import com.bh.cwms.wallet.model.constants.Currency;
 import com.bh.cwms.wallet.model.dto.wallet.WalletItemDto;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,7 +36,7 @@ public class WalletItem implements DtoBridge<WalletItemDto> {
     @UuidGenerator
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "wallet_id")
     private Wallet wallet;
 

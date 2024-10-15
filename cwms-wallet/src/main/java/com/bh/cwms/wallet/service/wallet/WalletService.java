@@ -11,6 +11,7 @@ public interface WalletService {
     WalletDto createWallet(AddWallet newWallet, UUID userId);
     WalletDto addWalletItem(UUID walletId, AddWallet newWallet, UUID userId);
     WalletDto getWalletById(UUID userId, UUID id);
+    WalletDto getWalletByUserId(UUID userId);
     WalletDto getWalletById(UUID id);
     ListResponse<WalletDto> getWallets(Pageable pageable);
     WalletDto updateWallet(WalletDto newWallet);

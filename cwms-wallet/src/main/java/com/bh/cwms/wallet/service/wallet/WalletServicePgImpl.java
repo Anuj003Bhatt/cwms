@@ -57,7 +57,7 @@ public class WalletServicePgImpl implements WalletService {
         WalletItem item = walletItemRepository.save(WalletItem
                 .builder()
                 .wallet(wallet)
-                .balance(BigDecimal.ZERO)
+                .balance(BigDecimal.valueOf(100))
                 .currency(newWallet.getCurrency())
                 .build());
 
@@ -101,6 +101,17 @@ public class WalletServicePgImpl implements WalletService {
 
         }
         return walletBalance;
+    }
+
+    @Override
+    public WalletDto getWalletByUserId(UUID userId) {
+        WalletDto walletDto = walletRepository.findByUserId(userId).orElseThrow(
+                () -> new BadRequestException("No wallet found for user '{}'", userId)
+        ).toDto();
+
+        BigDecimal balance = getWalletBalance(walletDto);
+        walletDto.setBalanceInUsd(balance);
+        return walletDto;
     }
 
     @Override
