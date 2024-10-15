@@ -19,12 +19,41 @@ The approach followed in this application is as follows:
 - Wallet Management:
   - Each user has one single dedicated `wallet` associated with their account.
   - Each user's `wallet` has `wallet items` inside it that correspond to specific currencies [like bitcoin, ethereum etc.].
+  - Each wallet is encrypted using a pin
+  - APIs:
+      - **[POST]** Create Wallet
+      - **[GET]** Get Wallet By ID [User Authentication is required]
+      - List Wallet
+      - **[POST]** Add Wallet Item for another currency
+      - **[DELETE]** Delete Wallet By ID
+- Transaction management:
+  - The application allows user send units of currency from one wallet to another
+  - The payload requires below things to process the request:
+      - Source Wallet ID
+      - User Pin
+      - Target Wallet ID
+      - Units to transfer
+      - Public key of sender
+  - The application verifies the wallet for balances by first verifying against the pin
+  - The application verifies the sender by verifying the private and public keys
+  - Then the transaction is signed using the private key of sender
+  - The same is then put into the block chain
+  - APIs:
+      - **[POST]** Transactions 
 - User Management:
   - User can create account by sign up / `create user` endpoint.
     - **Note:** The user's wallet is not created as of now at account creation time. A separate api is exposed to do that that initiates the wallet creation with one currency.
-- User Role Management:
-  - Admins can add roles to existing users
+  - APIs:
+    - **[POST]** Create User
+    - **[GET]** List User
+    - **[GET]** GET User by ID
+    - **[POST]** Authenticate user and return JWT
+    - **[PUT]** Assign role to a user
+    - **[PATCH]** Enable user
+    - **[PATCH]** Disable user
+
 # Pending Features
+- Complete blockchain validation simulation
 
 # Code Architecture
 The repository tries to create a microservice based architecture with 2 services
@@ -56,6 +85,9 @@ One can manually run the maven commands from the projects as well
 - Navigate to either of the application `cwms-user` or `cwms-wallet`
 - Run the command `mvn clean install`
 - Run the jar file directly.
+**Note:**
+- Due to some outstanding issues the maven install is not working.
+- Please use the intelli to run the main app directly and the application will run.
 
 # Tech Stack
 - Java
