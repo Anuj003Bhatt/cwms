@@ -104,5 +104,3 @@ To test the api endpoints please refer to below swaggers after starting both the
 - `cwms-user` : http://localhost:8001/swagger-ui/index.html
 - `cwms-wallet` : http://localhost:8002/swagger-ui/index.html
 
-# Outstanding Points
-- Complete User authorization was 
